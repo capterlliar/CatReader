@@ -1,8 +1,10 @@
 package txtReader;
 
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -18,20 +20,26 @@ class Chapter_GUI{
     double height;
     double text_width;
     double title_width;
-    Chapter_GUI(ArrayList<String> t,double w,double h,double tw,int ha){
+    Color color;
+    Chapter_GUI(ArrayList<String> t,double w,double h,double tw,int ha,Color c){
         text=t;
         width=w;
         height=h;
         text_width=tw;
         has_chapter=ha;
         title_width=15.5;
+        color=c;
         pages=new ArrayList<>();
         title=new LinkedList<>();
         dealed_text=new LinkedList<>();
         draw();
     }
-    void setText_width(double tw){
+    void setTextWidth(double tw){
         text_width=tw;
+        draw();
+    }
+    void setTextColor(Color c){
+        color=c;
         draw();
     }
     void setSize(double w,double h){
@@ -80,6 +88,7 @@ class Chapter_GUI{
                 }
                 String t=title.peek();
                 Text text=new Text(t);
+                text.setFill(color);
                 text.setFont(font1);
                 vBox.getChildren().add(text);
                 title.poll();
@@ -96,6 +105,7 @@ class Chapter_GUI{
             String t=dealed_text.peek();
             Text text=new Text(t);
             //vBox不接受两个一样的引用
+            text.setFill(color);
             text.setFont(font2);
             vBox.getChildren().add(text);
             dealed_text.poll();

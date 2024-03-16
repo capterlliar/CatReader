@@ -16,6 +16,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -68,6 +70,7 @@ public class GUI extends Application {
     int has_chapter;//是否有章节标题
     int has_catalog=0;//当前是否展示目录
     int is_loading=0;
+    Color color=Color.BLACK;//默认字体颜色黑色
     String name;
     String path;
     //String test="/src/main";
@@ -239,12 +242,48 @@ public class GUI extends Application {
         });
         background.getChildren().add(slider);
     }
+    void getColorPicker(){
+        //todo:缓存上次颜色
+        ColorPicker colorPicker=new ColorPicker(Color.BLACK);
+        colorPicker.prefHeightProperty().bind(background.heightProperty().multiply(0.02));
+        colorPicker.prefWidthProperty().bind(background.widthProperty().multiply(0.1));
+        colorPicker.layoutYProperty().bind(background.heightProperty().multiply(0.96));
+        colorPicker.layoutXProperty().bind(background.widthProperty().multiply(0.3));
+        colorPicker.setOnAction(e->{
+            color=colorPicker.getValue();
+            chapter.setTextColor(colorPicker.getValue());
+            pane.getChildren().clear();
+            pane.getChildren().add(chapter.getPage(page_num));
+            e.consume();
+        });
+        background.getChildren().add(colorPicker);
+    }
+    void getSliderForAllArea(){
+        slider=new Slider(0.1,1,1);
+        slider.setOrientation(Orientation.HORIZONTAL);
+        slider.prefHeightProperty().bind(background.heightProperty().multiply(0.02));
+        slider.prefWidthProperty().bind(background.widthProperty().multiply(0.2));
+        slider.layoutYProperty().bind(background.heightProperty().multiply(0.96));
+        slider.layoutXProperty().bind(background.widthProperty().multiply(0.5));
+        slider.valueProperty().addListener((ov,oldval,newval)->{
+            background.setOpacity((Double) newval);
+        });
+        background.getChildren().add(slider);
+    }
     void getListView() {
         if(book==null)
             return;
         ObservableList<Label> list = FXCollections.observableArrayList();
-        for (int i = 0; i < book.getChapter_num(); i++) {
-            list.add(new Label(book.getChapterName(i)));
+        int num=book.getChapter_num();
+        if(has_chapter==1) {
+            for (int i = 0; i < num; i++) {
+                list.add(new Label(book.getChapterName(i)));
+            }
+        }
+        else{
+            for (int i = 0; i < num; i++) {
+                list.add(new Label(String.format("%.2f",100.0/num*i)+"%"));
+            }
         }
         listView=null;
         listView = new ListView<>();
@@ -261,7 +300,7 @@ public class GUI extends Application {
                 return;
             pane.getChildren().clear();
             chapter = new Chapter_GUI(book.getChapter(newval.intValue()), pane.getWidth(),
-                    pane.getHeight(), 14.5, has_chapter);
+                    pane.getHeight(), 14.5, has_chapter,color);
             pane.getChildren().add(chapter.getPage(0));
             page_num=0;
             chapter_num=newval.intValue();
@@ -316,9 +355,10 @@ public class GUI extends Application {
         chapter=null;
         chapter=new Chapter_GUI(
                 arrayList,pane.getWidth(),pane.getHeight(),
-                14.5,has_chapter);
+                14.5,has_chapter,color);
         if(is_firstPage) page_num=0;
         else page_num=chapter.getPage_num()-1;
+        //todo:空章节异常处理
     }
     void showText(){
         if(book==null){
@@ -329,12 +369,12 @@ public class GUI extends Application {
         if(pane.getWidth()==0||pane.getHeight()==0) {
             chapter = new Chapter_GUI(
                     book.getChapter(chapter_num), prefsize * 0.9 * 0.9, prefsize * 0.9,
-                    14.5, has_chapter);
+                    14.5, has_chapter,color);
         }
         else {
             chapter=new Chapter_GUI(
                     book.getChapter(chapter_num),pane.getPrefWidth(),pane.getHeight(),
-                    14.5,has_chapter);
+                    14.5,has_chapter,color);
         }
         page_num=Math.min(page_num,chapter.getPage_num()-1);
         pane.getChildren().clear();
@@ -394,6 +434,7 @@ public class GUI extends Application {
             e.printStackTrace();
         }
     }
+
     void saveTemp(){
         //todo:可改至数据库后台
         if(book==null)
@@ -438,6 +479,8 @@ public class GUI extends Application {
         gethBox();
         getPane();
         getSlider();
+        getSliderForAllArea();
+        getColorPicker();
         getCatalog();
         hBox.getChildren().add(catalog);
         hBox.getChildren().add(pane);
